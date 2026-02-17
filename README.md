@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# LifePulse 💜
 
-## Getting Started
+LifePulse is a modern, responsive personal finance and expense tracker application designed to help you stay on top of your financial health. Built with the latest web technologies, it offers a seamless experience for tracking transactions, visualizing spending habits, and managing accounts.
 
-First, run the development server:
+![LifePulse Dashboard](./src/assets/dashboard-preview.png)
+*(Note: Screenshot placeholder)*
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## ✨ Features
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **📊 Interactive Dashboard**
+  - **Financial Overview**: track your income and expenses over the last 6 months.
+  - **Spending Analysis**: Visualize your spending by category with a clean, icon-based monthly pie chart.
+  - **Calendar View**: A detailed calendar panel showing daily income, expenses, and net balance with high-contrast readability.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **💰 Transaction Management**
+  - Add, edit, and delete income and expense transactions.
+  - Categorize transactions with custom icons and colors.
+  - Link transactions to specific accounts (Bank, Cash, Wallet, etc.).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **📂 Statement Import**
+  - Import bank statements (PDF/CSV) to automatically populate transactions.
+  - **Demo Mode**: Quickly populate the dashboard with realistic dummy data for testing and demonstration.
 
-## Learn More
+- **🎨 Modern UI/UX**
+  - Built with **Material UI (MUI)** for a polished, accessible, and responsive design.
+  - **Dark/Light Mode** support (optimized for readability).
+  - Smooth animations and transitions.
 
-To learn more about Next.js, take a look at the following resources:
+## 🛠️ Tech Stack
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Framework**: [Next.js 16](https://nextjs.org/) (App Router, Turbopack)
+- **Language**: TypeScript
+- **Styling**: [Material UI (MUI) v6](https://mui.com/)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Data Fetching**: [TanStack Query](https://tanstack.com/query/latest)
+- **Charts**: [Recharts](https://recharts.org/)
+- **Backend/Auth**: [Supabase](https://supabase.com/)
+- **PDF Parsing**: `pdfjs-dist`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 🚀 Getting Started
 
-## Deploy on Vercel
+Follow these steps to get the project running on your local machine.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Prerequisites
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Node.js (v18 or later)
+- npm, yarn, or pnpm
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
