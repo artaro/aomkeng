@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [0.1.1](https://github.com/artaro/lifepulse/compare/v0.1.0...v0.1.1) (2026-03-04)
+
+
+### Features
+
+* Implement statement parsing, enhance date handling in expense components, and rename the project to aomkeng. ([4867c54](https://github.com/artaro/lifepulse/commit/4867c549607f24f41503148d8955d2bef6f25c2e))
+* Introduce release management scripts and `commit-and-tag-version` dependency. ([f4703c9](https://github.com/artaro/lifepulse/commit/f4703c91fa42dfb95d030649a694fecade7d1e59))
+
 ## 0.1.0 (2026-03-04)
 
 
