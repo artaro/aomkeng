@@ -5,6 +5,7 @@ import { useCreateTransactionsBulk } from '@/features/expenses/hooks/useTransact
 import { CreateTransactionInput } from '@/features/expenses/types';
 import { TransactionType, StatementSource } from '@/features/expenses/types';
 import { compressImage } from '@/shared/lib/imageUtils';
+import { toLocalISOString } from '@/shared/lib/formatters';
 
 const LAST_IMPORT_KEY = 'aomkeng_last_import';
 
@@ -178,12 +179,9 @@ export function useStatementImport(): UseStatementImportReturn {
 
             try {
                 const inputs: CreateTransactionInput[] = transactions.map((tx, i) => {
-                    // Combine date and time if available
-                    let transactionDate = tx.date;
-                    if (tx.time) {
-                        // Ensure time is in HH:mm format, append :00 for seconds
-                        transactionDate = `${tx.date}T${tx.time}:00`;
-                    }
+                    // Always combine date and time with local timezone offset
+                    const time = tx.time || '00:00';
+                    const transactionDate = toLocalISOString(tx.date, time);
 
                     return {
                         accountId,

@@ -190,6 +190,7 @@ const translations: Record<Language, Record<string, string>> = {
         'transactions.deleteAll': 'ลบทั้งหมด',
         'transactions.setCategory': 'ตั้งหมวดหมู่...',
         'transactions.clearFilters': 'ล้างตัวกรอง',
+        'transactions.filters': 'ตัวกรอง',
 
         // ── Transaction Form ──
         'txForm.newTransaction': 'บันทึกรายการ',
@@ -200,11 +201,13 @@ const translations: Record<Language, Record<string, string>> = {
         'txForm.category': 'หมวดหมู่',
         'txForm.selectCategory': 'เลือกหมวด...',
         'txForm.date': 'วันที่',
+        'txForm.time': 'เวลา',
         'txForm.account': 'บัญชี',
         'txForm.selectAccount': 'เลือกบัญชี',
         'txForm.fromAccount': 'โอนจากบัญชี',
         'txForm.toAccount': 'ไปที่บัญชี',
         'txForm.sameAccountError': 'โอนไปบัญชีเดิมไม่ได้นะ',
+        'txForm.creditCardPayment': 'ชำระหนี้บัตรเครดิต',
         'txForm.saveTransaction': 'บันทึกความรวย',
 
         // ── Accounts Page ──
@@ -219,6 +222,11 @@ const translations: Record<Language, Record<string, string>> = {
         'accounts.outstanding': 'ยอดค้างชำระ',
         'accounts.bank': 'ธนาคาร',
         'accounts.credit': 'เครดิต',
+        'accounts.availableCredit': 'คงเหลือ',
+        'accounts.utilized': 'ใช้แล้ว {pct}%',
+        'accounts.totalCash': 'เงินสด',
+        'accounts.totalDebt': 'หนี้สิน',
+        'accounts.net': 'สุทธิ',
 
         // ── Account Form ──
         'accountForm.addAccount': 'เพิ่มบัญชีใหม่',
@@ -232,6 +240,9 @@ const translations: Record<Language, Record<string, string>> = {
         'accountForm.bankName': 'ชื่อธนาคาร (ไม่บังคับ)',
         'accountForm.bankNamePlaceholder': 'เช่น กสิกรไทย, SCB',
         'accountForm.last4': 'เลขท้าย 4 หลัก (ไม่บังคับ)',
+        'accountForm.outstandingBalance': 'ยอดค้างชำระปัจจุบัน',
+        'accountForm.creditLimit': 'วงเงินเครดิต',
+        'accountForm.creditLimitPlaceholder': 'เช่น 50000',
         'accountForm.create': 'สร้างเลย',
         'accountForm.update': 'อัปเดต',
 
@@ -496,6 +507,7 @@ const translations: Record<Language, Record<string, string>> = {
         'transactions.deleteAll': 'Delete All',
         'transactions.setCategory': 'Set Category...',
         'transactions.clearFilters': 'Clear Filters',
+        'transactions.filters': 'Filters',
 
         // ── Transaction Form ──
         'txForm.newTransaction': 'Log Transaction',
@@ -506,11 +518,13 @@ const translations: Record<Language, Record<string, string>> = {
         'txForm.category': 'Category',
         'txForm.selectCategory': 'Pick a category...',
         'txForm.date': 'Date',
+        'txForm.time': 'Time',
         'txForm.account': 'Account',
         'txForm.selectAccount': 'Select Account',
         'txForm.fromAccount': 'From Account',
         'txForm.toAccount': 'To Account',
         'txForm.sameAccountError': 'Can\'t transfer to the same account',
+        'txForm.creditCardPayment': 'This pays off your credit card balance',
         'txForm.saveTransaction': 'Save It',
 
         // ── Accounts Page ──
@@ -525,6 +539,11 @@ const translations: Record<Language, Record<string, string>> = {
         'accounts.outstanding': 'Outstanding',
         'accounts.bank': 'Bank',
         'accounts.credit': 'Credit',
+        'accounts.availableCredit': 'available',
+        'accounts.utilized': 'Used {pct}%',
+        'accounts.totalCash': 'Cash',
+        'accounts.totalDebt': 'Debt',
+        'accounts.net': 'Net',
 
         // ── Account Form ──
         'accountForm.addAccount': 'Add Account',
@@ -538,6 +557,9 @@ const translations: Record<Language, Record<string, string>> = {
         'accountForm.bankName': 'Bank Name (optional)',
         'accountForm.bankNamePlaceholder': 'e.g. Kasikorn, SCB',
         'accountForm.last4': 'Last 4 digits (optional)',
+        'accountForm.outstandingBalance': 'Current Outstanding',
+        'accountForm.creditLimit': 'Credit Limit',
+        'accountForm.creditLimitPlaceholder': 'e.g. 50000',
         'accountForm.create': 'Create',
         'accountForm.update': 'Update',
 

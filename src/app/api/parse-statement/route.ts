@@ -16,7 +16,12 @@ Strict Rules:
   - "time": HH:mm (24-hour) or "" if missing
   - "description": CRITICAL — For Thai bank statements (KBank, SCB, etc.), the table has BOTH a 'รายการ' column (generic type like ชำระเงิน/โอนเงิน) AND a 'รายละเอียด' column (detailed info with ref codes, merchant names, account numbers). You MUST use the 'รายละเอียด' column for description, NEVER the 'รายการ' column. The 'รายละเอียด' column is usually the rightmost/widest column. If 'รายละเอียด' is not present, use the most detailed description column available.
   - "amount": Positive number (float). ABSOLUTELY NO NEGATIVE SIGNS or commas.
-  - "type": "income" (if amount has a minus sign in the image, e.g. -500.00) or "expense" (if amount is positive). Default to "expense".
+  - "type": Classify as "income" or "expense" using these rules (check in order):
+    1. If the statement has separate debit/credit columns (ถอน/ฝาก or debit/credit): amount in debit column = "expense", amount in credit column = "income".
+    2. If there is a 'รายการ' column: "หักบัญชี", "ชำระเงิน", "โอนเงิน" (outgoing), "ถอนเงิน" = "expense". "เงินเข้า", "รับโอน" = "income".
+    3. If the amount has a MINUS sign (e.g. -500.00) in the original statement, it means money left the account = "expense".
+    4. If the amount is positive and not in a debit column = "income".
+    5. Default to "expense" if uncertain.
 
 Output ONLY this JSON array. No markdown formatting. No explanation.`;
 

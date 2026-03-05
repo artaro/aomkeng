@@ -185,6 +185,15 @@ export const transactionRepository = {
     if (error) throw new Error(error.message);
   },
 
+  async deleteAll(userId: string): Promise<void> {
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('user_id', userId);
+
+    if (error) throw new Error(error.message);
+  },
+
   async getSummary(
     userId: string,
     startDate?: string,

@@ -90,3 +90,16 @@ export function useDeleteTransaction() {
     },
   });
 }
+
+export function useDeleteAllTransactions() {
+  const queryClient = useQueryClient();
+  const userId = useAuthStore((s) => s.user?.id);
+
+  return useMutation({
+    mutationFn: () => transactionRepository.deleteAll(userId!),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all });
+      queryClient.invalidateQueries({ queryKey: queryKeys.accounts.all });
+    },
+  });
+}

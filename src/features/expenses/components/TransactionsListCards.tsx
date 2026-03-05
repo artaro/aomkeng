@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { Trash2, Pencil } from "lucide-react";
 import { Transaction, Category, Account } from "@/features/expenses/types";
-import { formatCurrency, formatDate } from "@/shared/lib/formatters";
+import { formatCurrency, formatDate, formatTime } from "@/shared/lib/formatters";
 import { useTranslation } from "@/shared/lib/i18n";
 import { ConfirmDialog } from "@/shared/components";
 
@@ -107,6 +107,12 @@ export default function TransactionsListCards({
                   </span>
                   <span className="text-[11px] font-medium text-[var(--color-text-muted)]">
                     {formatDate(tx.transactionDate)}
+                  </span>
+                  <span className="text-[10px] text-[var(--color-text-muted)]">
+                    •
+                  </span>
+                  <span className="text-[11px] font-medium text-[var(--color-text-muted)] tabular-nums">
+                    {formatTime(tx.transactionDate)}
                   </span>
                 </div>
               </div>

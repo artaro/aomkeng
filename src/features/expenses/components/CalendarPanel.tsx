@@ -17,7 +17,7 @@ type ViewType = "expense" | "income" | "total";
 export default function CalendarPanel({ transactions }: CalendarPanelProps) {
   const { t, language } = useTranslation();
   const [view, setView] = useState<ViewType>("total");
-  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentDate, setCurrentDate] = useState(() => new Date());
 
   const viewLabels: Record<ViewType, string> = {
     total: t("calendar.total"),

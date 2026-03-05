@@ -1,7 +1,7 @@
 import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import { Transaction } from "@/features/expenses/types";
-import { formatCurrency, formatDate } from "@/shared/lib/formatters";
+import { formatCurrency, formatDate, formatTime } from "@/shared/lib/formatters";
 import { useCategories } from "@/features/expenses";
 
 interface TransactionRowProps {
@@ -74,6 +74,10 @@ export default function TransactionRow({
             <span className="text-[10px]">•</span>
             <span className="font-medium tracking-wide">
               {formatDate(transaction.transactionDate)}
+            </span>
+            <span className="text-[10px]">•</span>
+            <span className="font-medium tracking-wide tabular-nums">
+              {formatTime(transaction.transactionDate)}
             </span>
           </div>
         </div>

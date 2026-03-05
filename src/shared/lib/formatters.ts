@@ -55,6 +55,33 @@ export function toLocalDateString(dateStr: string): string {
 }
 
 /**
+ * Extract the local HH:mm time string from a date/datetime string.
+ * Returns "00:00" for date-only strings.
+ */
+export function formatTime(dateStr: string): string {
+  if (!dateStr.includes('T')) return '00:00';
+  const d = toLocalDate(dateStr);
+  return fnsFormat(d, 'HH:mm');
+}
+
+/**
+ * Build a local datetime string with timezone offset for Supabase.
+ * e.g. toLocalISOString("2026-02-15", "12:30") → "2026-02-15T12:30:00+07:00"
+ * This ensures Supabase stores the correct local time, not UTC.
+ */
+export function toLocalISOString(date: string, time: string = '00:00'): string {
+  const [y, m, d] = date.split('-').map(Number);
+  const [hh, mm] = time.split(':').map(Number);
+  const local = new Date(y, m - 1, d, hh, mm, 0);
+  const offsetMin = -local.getTimezoneOffset();
+  const sign = offsetMin >= 0 ? '+' : '-';
+  const absOffset = Math.abs(offsetMin);
+  const oh = String(Math.floor(absOffset / 60)).padStart(2, '0');
+  const om = String(absOffset % 60).padStart(2, '0');
+  return `${date}T${time}:00${sign}${oh}:${om}`;
+}
+
+/**
  * Format a date string to a user-friendly format.
  */
 export function formatDate(

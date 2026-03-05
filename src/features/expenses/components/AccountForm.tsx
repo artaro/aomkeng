@@ -29,6 +29,9 @@ export default function AccountForm({
   const [balance, setBalance] = useState(String(initialData?.balance ?? 0));
   const [bankName, setBankName] = useState(initialData?.bankName || '');
   const [last4, setLast4] = useState(initialData?.accountNumberLast4 || '');
+  const [creditLimit, setCreditLimit] = useState(
+    initialData?.creditLimit != null ? String(initialData.creditLimit) : ''
+  );
 
   useEffect(() => {
     if (open) {
@@ -38,6 +41,7 @@ export default function AccountForm({
       setBalance(String(initialData?.balance ?? 0));
       setBankName(initialData?.bankName || '');
       setLast4(initialData?.accountNumberLast4 || '');
+      setCreditLimit(initialData?.creditLimit != null ? String(initialData.creditLimit) : '');
     }
   }, [open, initialData]);
 
@@ -49,6 +53,9 @@ export default function AccountForm({
       balance: parseFloat(balance) || 0,
       bankName: bankName || undefined,
       accountNumberLast4: last4 || undefined,
+      ...(type === AccountType.CREDIT_CARD && creditLimit
+        ? { creditLimit: parseFloat(creditLimit) || undefined }
+        : {}),
     };
     onSubmit(data);
   };
@@ -98,8 +105,11 @@ export default function AccountForm({
              <div className="flex gap-2">
                 <button
                     type="button"
-                    onClick={() => setType(AccountType.BANK)}
+                    onClick={() => !isEdit && setType(AccountType.BANK)}
+                    disabled={isEdit}
                     className={`flex-1 py-2 flex items-center justify-center gap-2 text-sm font-bold tracking-wider border-2 transition-all ${
+                        isEdit ? 'cursor-not-allowed opacity-60' : ''
+                    } ${
                         type === AccountType.BANK
                         ? 'border-[var(--color-income)] bg-[var(--color-income)] text-[var(--color-background)] shadow-[2px_2px_0px_0px_var(--color-border)]'
                         : 'border-[var(--color-border)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]'
@@ -109,8 +119,11 @@ export default function AccountForm({
                 </button>
                 <button
                     type="button"
-                    onClick={() => setType(AccountType.CREDIT_CARD)}
+                    onClick={() => !isEdit && setType(AccountType.CREDIT_CARD)}
+                    disabled={isEdit}
                     className={`flex-1 py-2 flex items-center justify-center gap-2 text-sm font-bold tracking-wider border-2 transition-all ${
+                        isEdit ? 'cursor-not-allowed opacity-60' : ''
+                    } ${
                         type === AccountType.CREDIT_CARD
                         ? 'border-[var(--color-expense)] bg-[var(--color-expense)] text-[var(--color-background)] shadow-[2px_2px_0px_0px_var(--color-border)]'
                         : 'border-[var(--color-border)] hover:bg-[var(--color-surface-2)] text-[var(--color-text-secondary)]'
@@ -123,7 +136,9 @@ export default function AccountForm({
 
            {/* Balance */}
            <div>
-             <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1.5 ml-1">{t('accountForm.currentBalance')}</label>
+             <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1.5 ml-1">
+               {type === AccountType.CREDIT_CARD ? t('accountForm.outstandingBalance') : t('accountForm.currentBalance')}
+             </label>
              <div className="relative">
                <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
                <input 
@@ -155,15 +170,34 @@ export default function AccountForm({
            {/* Last 4 Digits */}
            <div>
              <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1.5 ml-1">{t('accountForm.last4')}</label>
-             <input 
+             <input
                type="text"
                maxLength={4}
                value={last4}
                onChange={(e) => setLast4(e.target.value.replace(/\D/g, '').slice(0, 4))}
-               className="brutal-input w-full px-4 py-2.5 tracking-widest" 
+               className="brutal-input w-full px-4 py-2.5 tracking-widest"
                placeholder="1234"
              />
            </div>
+
+           {/* Credit Limit (credit cards only) */}
+           {type === AccountType.CREDIT_CARD && (
+             <div>
+               <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1.5 ml-1">{t('accountForm.creditLimit')}</label>
+               <div className="relative">
+                 <DollarSign size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]" />
+                 <input
+                   type="number"
+                   step="0.01"
+                   min="0"
+                   value={creditLimit}
+                   onChange={(e) => setCreditLimit(e.target.value)}
+                   className="brutal-input w-full pl-10 pr-4 py-2.5 font-medium"
+                   placeholder={t('accountForm.creditLimitPlaceholder')}
+                 />
+               </div>
+             </div>
+           )}
 
            {/* Actions */}
            <div className="pt-4 flex justify-end gap-3 mt-2">

@@ -4,7 +4,7 @@ import React from "react";
 import { Edit2, Trash2 } from "lucide-react";
 import { Transaction } from "@/features/expenses/types";
 import { AccountType } from "@/features/expenses/types";
-import { formatCurrency, formatDate } from "@/shared/lib/formatters";
+import { formatCurrency, formatDate, formatTime } from "@/shared/lib/formatters";
 import { useCategories, useAccounts } from "@/features/expenses";
 
 interface TransactionItemProps {
@@ -98,9 +98,13 @@ export default function TransactionItem({
               </span>
             )}
 
-            {/* Date */}
+            {/* Date & Time */}
             <span className="text-[11px] text-[var(--color-text-muted)] font-medium">
               {formatDate(transaction.transactionDate)}
+            </span>
+            <span className="text-[10px] text-[var(--color-text-muted)]">•</span>
+            <span className="text-[11px] text-[var(--color-text-muted)] font-medium tabular-nums">
+              {formatTime(transaction.transactionDate)}
             </span>
           </div>
         </div>

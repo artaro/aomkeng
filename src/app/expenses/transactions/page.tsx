@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Search, X } from "lucide-react";
+import { Search, X, Trash2, SlidersHorizontal } from "lucide-react";
 import { TransactionForm } from "@/features/expenses/components";
 import TransactionsListCards from "@/features/expenses/components/TransactionsListCards";
-import { EmptyState, ContentList } from "@/shared/components";
+import { EmptyState, ContentList, ConfirmDialog } from "@/shared/components";
 import { TransactionType, StatementSource } from "@/features/expenses/types";
 import { Transaction } from "@/features/expenses/types";
 import {
@@ -14,9 +14,10 @@ import {
   useCreateTransaction,
   useUpdateTransaction,
   useDeleteTransaction,
+  useDeleteAllTransactions,
 } from "@/features/expenses";
 import { useTranslation } from "@/shared/lib/i18n";
-import { toLocalDateString } from "@/shared/lib/formatters";
+
 
 const PAGE_SIZE = 20;
 
@@ -33,11 +34,13 @@ export default function TransactionsPage() {
   const [filterMonth, setFilterMonth] = useState<string>("");
   const [filterYear, setFilterYear] = useState<string>("");
   const [page, setPage] = useState(1);
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   // Data fetching
   const {
     data: transactionData,
     isLoading,
+    isFetching,
     isError,
   } = useTransactions({
     search: searchQuery || undefined,
@@ -57,6 +60,9 @@ export default function TransactionsPage() {
   const createMutation = useCreateTransaction();
   const updateMutation = useUpdateTransaction();
   const deleteMutation = useDeleteTransaction();
+  const deleteAllMutation = useDeleteAllTransactions();
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
+  const isDev = process.env.NODE_ENV === "development";
 
   const transactions = transactionData?.data || [];
   const meta = transactionData?.meta;
@@ -133,7 +139,15 @@ export default function TransactionsPage() {
     }
   };
 
-  // --- Handlers ---
+  const handleDeleteAll = async () => {
+    try {
+      await deleteAllMutation.mutateAsync();
+      setShowDeleteAllConfirm(false);
+      setPage(1);
+    } catch (error) {
+      console.error("Failed to delete all transactions", error);
+    }
+  };
 
   const handleFormClose = () => {
     setFormOpen(false);
@@ -149,12 +163,10 @@ export default function TransactionsPage() {
   );
 
   // Clear all filters
+  const activeFilterCount = [filterCategory, filterAccount, filterMonth, filterYear].filter(Boolean).length;
   const hasActiveFilters =
     searchQuery !== "" ||
-    filterCategory !== "" ||
-    filterAccount !== "" ||
-    filterMonth !== "" ||
-    filterYear !== "";
+    activeFilterCount > 0;
   const clearAllFilters = () => {
     setSearchQuery("");
     setFilterType(TransactionType.EXPENSE);
@@ -174,7 +186,7 @@ export default function TransactionsPage() {
           totalItem={totalItem}
           pageSize={PAGE_SIZE}
           onPageChange={setPage}
-          isLoading={isLoading}
+          isLoading={isLoading || isFetching}
           isError={isError}
           errorMessage={t("transactions.failedToLoad")}
           showingLabel={
@@ -188,9 +200,9 @@ export default function TransactionsPage() {
           }
           filterSection={
             <div className="sticky top-16 z-30 px-4 md:px-6 py-2.5 bg-[var(--color-surface)]/95 backdrop-blur-xl border-b-2 border-[var(--color-border)] transition-all duration-300">
-              {/* Row 1: Search → Type tabs → Month → Year */}
-              <div className="flex justify-center items-center gap-2 mb-2 w-full">
-                {/* Search Bar (primary — flex-1) */}
+              {/* Row 1: Search → Type tabs → Filter toggle */}
+              <div className="flex justify-center items-center gap-2 w-full">
+                {/* Search Bar */}
                 <div className="relative flex-1 min-w-[120px]">
                   <Search
                     size={14}
@@ -251,138 +263,133 @@ export default function TransactionsPage() {
                   </button>
                 </div>
 
-                {/* Month / Year (desktop) */}
-                <select
-                  value={filterMonth}
-                  onChange={(e) => {
-                    setFilterMonth(e.target.value);
-                    setPage(1);
-                  }}
-                  className="hidden md:block brutal-input px-2 py-1.5 text-sm font-medium cursor-pointer"
+                {/* Filter toggle button */}
+                <button
+                  onClick={() => setFiltersOpen((v) => !v)}
+                  className={`relative flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold border-2 transition-all flex-shrink-0 uppercase tracking-wider ${
+                    filtersOpen || activeFilterCount > 0
+                      ? "border-[var(--color-primary)] text-[var(--color-primary)] bg-[var(--color-primary)]/10"
+                      : "border-[var(--color-border)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[var(--color-text-secondary)]"
+                  }`}
                 >
-                  <option value="">{t("common.allMonths")}</option>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={m}>
-                      {new Date(2000, m - 1).toLocaleString("default", {
-                        month: "short",
-                      })}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={filterYear}
-                  onChange={(e) => {
-                    setFilterYear(e.target.value);
-                    setPage(1);
-                  }}
-                  className="hidden md:block brutal-input px-2 py-1.5 text-sm font-medium cursor-pointer w-20"
-                >
-                  <option value="">{t("common.allYears")}</option>
-                  {years.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
+                  <SlidersHorizontal size={14} />
+                  <span className="hidden sm:inline">{t("transactions.filters")}</span>
+                  {activeFilterCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 w-4 h-4 text-[10px] font-bold bg-[var(--color-primary)] text-[var(--color-surface)] rounded-full flex items-center justify-center">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </button>
               </div>
 
-              {/* Row 2: Expanded Filters */}
-              <div className="flex justify-center flex-wrap items-center gap-2 pt-2 border-t-2 border-[var(--color-border)] animate-fade-in">
-                {/* Mobile-only Month/Year */}
-                <select
-                  value={filterMonth}
-                  onChange={(e) => {
-                    setFilterMonth(e.target.value);
-                    setPage(1);
-                  }}
-                  className="md:hidden brutal-input px-2.5 py-1.5 text-xs font-medium cursor-pointer"
-                >
-                  <option value="">
-                    {t("common.allMonths") || "All Months"}
-                  </option>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={m}>
-                      {new Date(2000, m - 1).toLocaleString("default", {
-                        month: "short",
-                      })}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={filterYear}
-                  onChange={(e) => {
-                    setFilterYear(e.target.value);
-                    setPage(1);
-                  }}
-                  className="md:hidden brutal-input px-2.5 py-1.5 text-xs font-medium cursor-pointer w-20"
-                >
-                  <option value="">
-                    {t("common.allYears") || "All Years"}
-                  </option>
-                  {years.map((y) => (
-                    <option key={y} value={y}>
-                      {y}
-                    </option>
-                  ))}
-                </select>
-
-                <select
-                  value={filterAccount}
-                  onChange={(e) => {
-                    setFilterAccount(e.target.value);
-                    setPage(1);
-                  }}
-                  className="brutal-input px-2.5 py-1.5 text-xs font-medium min-w-[100px] cursor-pointer"
-                >
-                  <option value="">{t("transactions.allAccounts")}</option>
-                  {accounts.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.name}
-                    </option>
-                  ))}
-                </select>
-
-                {filterType !== TransactionType.TRANSFER && (
+              {/* Row 2: Collapsible filter dropdowns */}
+              {filtersOpen && (
+                <div className="flex justify-center flex-wrap items-center gap-2 pt-2 mt-2 border-t-2 border-[var(--color-border)] animate-fade-in">
                   <select
-                    value={filterCategory}
+                    value={filterMonth}
                     onChange={(e) => {
-                      setFilterCategory(e.target.value);
+                      setFilterMonth(e.target.value);
                       setPage(1);
                     }}
-                    className="brutal-input px-2.5 py-1.5 text-xs font-medium min-w-[110px] cursor-pointer"
+                    className="brutal-input px-2.5 py-1.5 text-xs font-medium cursor-pointer"
                   >
-                    <option value="">{t("transactions.allCategories")}</option>
-                    {filteredCategories.map((c) => (
-                      <option key={c.id} value={c.id}>
-                        {c.icon} {c.name}
+                    <option value="">{t("common.allMonths")}</option>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                      <option key={m} value={m}>
+                        {new Date(2000, m - 1).toLocaleString("default", {
+                          month: "short",
+                        })}
                       </option>
                     ))}
                   </select>
-                )}
 
-                {/* Clear Filters */}
-                {hasActiveFilters && (
-                  <button
-                    onClick={clearAllFilters}
-                    className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 border-2 border-[var(--color-primary)] transition-colors flex-shrink-0 uppercase tracking-wider"
+                  <select
+                    value={filterYear}
+                    onChange={(e) => {
+                      setFilterYear(e.target.value);
+                      setPage(1);
+                    }}
+                    className="brutal-input px-2.5 py-1.5 text-xs font-medium cursor-pointer w-20"
                   >
-                    <X size={12} />
-                    {t("transactions.clearFilters")}
-                  </button>
-                )}
-              </div>
+                    <option value="">{t("common.allYears")}</option>
+                    {years.map((y) => (
+                      <option key={y} value={y}>
+                        {y}
+                      </option>
+                    ))}
+                  </select>
+
+                  <select
+                    value={filterAccount}
+                    onChange={(e) => {
+                      setFilterAccount(e.target.value);
+                      setPage(1);
+                    }}
+                    className="brutal-input px-2.5 py-1.5 text-xs font-medium min-w-[100px] cursor-pointer"
+                  >
+                    <option value="">{t("transactions.allAccounts")}</option>
+                    {accounts.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.name}
+                      </option>
+                    ))}
+                  </select>
+
+                  {filterType !== TransactionType.TRANSFER && (
+                    <select
+                      value={filterCategory}
+                      onChange={(e) => {
+                        setFilterCategory(e.target.value);
+                        setPage(1);
+                      }}
+                      className="brutal-input px-2.5 py-1.5 text-xs font-medium min-w-[110px] cursor-pointer"
+                    >
+                      <option value="">{t("transactions.allCategories")}</option>
+                      {filteredCategories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.icon} {c.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+
+                  {/* Clear Filters */}
+                  {hasActiveFilters && (
+                    <button
+                      onClick={clearAllFilters}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 border-2 border-[var(--color-primary)] transition-colors flex-shrink-0 uppercase tracking-wider"
+                    >
+                      <X size={12} />
+                      {t("transactions.clearFilters")}
+                    </button>
+                  )}
+
+                  {/* Delete All (dev only) */}
+                  {isDev && totalItem > 0 && (
+                    <button
+                      onClick={() => setShowDeleteAllConfirm(true)}
+                      className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-bold text-[var(--color-expense)] hover:bg-[var(--color-expense)]/10 border-2 border-[var(--color-expense)] transition-colors flex-shrink-0 uppercase tracking-wider"
+                    >
+                      <Trash2 size={12} />
+                      {t("transactions.deleteAll")}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           }
         >
           {!isLoading && !isError && transactions.length > 0 ? (
-            <TransactionsListCards
-              transactions={transactions}
-              categories={categories}
-              accounts={accounts}
-              onEditTransaction={handleEditInteraction}
-              onDeleteTransaction={handleDelete}
-              selectedType={null}
-            />
+            <div className={`transition-opacity duration-200 ${isFetching && !isLoading ? "opacity-50 pointer-events-none" : ""}`}>
+              <TransactionsListCards
+                transactions={transactions}
+                categories={categories}
+                accounts={accounts}
+                onEditTransaction={handleEditInteraction}
+                onDeleteTransaction={handleDelete}
+                selectedType={null}
+              />
+            </div>
           ) : !isLoading && !isError ? (
             <EmptyState
               emoji="🔍"
@@ -409,14 +416,23 @@ export default function TransactionsPage() {
                   type: editTarget.type,
                   amount: editTarget.amount,
                   description: editTarget.description || "",
-                  transactionDate: toLocalDateString(
-                    editTarget.transactionDate,
-                  ),
+                  transactionDate: editTarget.transactionDate,
                 }
               : undefined
           }
           loading={createMutation.isPending || updateMutation.isPending}
           isEdit={!!editTarget}
+        />
+
+        {/* Delete All Confirmation (dev only) */}
+        <ConfirmDialog
+          open={showDeleteAllConfirm}
+          title={t("transactions.deleteAll")}
+          message={t("transactions.deleteSelectedMsg", { count: totalItem })}
+          confirmLabel={t("common.delete")}
+          cancelLabel={t("common.cancel")}
+          onConfirm={handleDeleteAll}
+          onCancel={() => setShowDeleteAllConfirm(false)}
         />
       </div>
     </div>

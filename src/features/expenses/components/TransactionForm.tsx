@@ -4,11 +4,12 @@ import React, { useState, useEffect } from "react";
 import {
   X,
   Calendar as CalendarIcon,
+  Clock,
   FileText,
   DollarSign,
   ChevronDown,
 } from "lucide-react";
-import { TransactionType } from "@/features/expenses/types";
+import { TransactionType, AccountType } from "@/features/expenses/types";
 import {
   Account,
   Category,
@@ -16,12 +17,12 @@ import {
 } from "@/features/expenses/types";
 import { useTranslation } from "@/shared/lib/i18n";
 import { format } from "date-fns";
-import { toLocalDateString } from "@/shared/lib/formatters";
+import { toLocalDateString, formatTime, toLocalISOString } from "@/shared/lib/formatters";
 
 interface TransactionFormProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (data: CreateTransactionInput) => void;
+  onSubmit: (data: CreateTransactionInput) => void | Promise<void>;
   accounts: Account[];
   categories: Category[];
   initialData?: Partial<CreateTransactionInput>;
@@ -47,7 +48,8 @@ export default function TransactionForm({
     accountId: "",
     categoryId: "",
     destinationAccountId: "",
-    transactionDate: format(new Date(), "yyyy-MM-dd"),
+    transactionDate: "",
+    transactionTime: "00:00",
   });
 
   useEffect(() => {
@@ -64,6 +66,9 @@ export default function TransactionForm({
           transactionDate: initialData.transactionDate
             ? toLocalDateString(initialData.transactionDate)
             : format(new Date(), "yyyy-MM-dd"),
+          transactionTime: initialData.transactionDate
+            ? formatTime(initialData.transactionDate)
+            : "00:00",
         });
       } else {
         setFormData({
@@ -74,6 +79,7 @@ export default function TransactionForm({
           categoryId: "",
           destinationAccountId: "",
           transactionDate: format(new Date(), "yyyy-MM-dd"),
+          transactionTime: "00:00",
         });
       }
     }
@@ -83,15 +89,18 @@ export default function TransactionForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const { transactionTime: _time, ...rest } = formData;
+    const transactionDate = toLocalISOString(formData.transactionDate, _time);
     onSubmit({
-      ...formData,
-      amount: Number(formData.amount),
+      ...rest,
+      amount: Number(rest.amount),
+      transactionDate,
       destinationAccountId:
-        formData.type === TransactionType.TRANSFER
-          ? formData.destinationAccountId
+        rest.type === TransactionType.TRANSFER
+          ? rest.destinationAccountId
           : null,
       categoryId:
-        formData.type === TransactionType.TRANSFER ? null : formData.categoryId,
+        rest.type === TransactionType.TRANSFER ? null : rest.categoryId,
     });
   };
 
@@ -102,7 +111,7 @@ export default function TransactionForm({
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/20 backdrop-blur-sm animate-fade-in"
-        onClick={onClose}
+        onClick={loading ? undefined : onClose}
       />
 
       {/* Modal */}
@@ -114,7 +123,8 @@ export default function TransactionForm({
           </h2>
           <button
             onClick={onClose}
-            className="p-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors"
+            disabled={loading}
+            className="p-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] transition-colors disabled:opacity-30"
           >
             <X size={20} />
           </button>
@@ -122,6 +132,7 @@ export default function TransactionForm({
 
         {/* content */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5 overflow-y-auto">
+          <fieldset disabled={loading} className={`space-y-5 ${loading ? "opacity-60" : ""}`}>
           {/* Type Toggle */}
           <div className="flex border-2 border-[var(--color-border)]">
             <button
@@ -284,6 +295,29 @@ export default function TransactionForm({
             </div>
           </div>
 
+          {/* Time (optional, default 00:00) */}
+          <div>
+            <label className="block text-xs font-bold text-[var(--color-text-secondary)] uppercase tracking-wider mb-1.5 ml-1">
+              {t("txForm.time")}
+            </label>
+            <div className="relative">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--color-text-muted)]">
+                <Clock size={16} />
+              </div>
+              <input
+                type="time"
+                value={formData.transactionTime}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    transactionTime: e.target.value || "00:00",
+                  })
+                }
+                className="brutal-input w-full pl-9 pr-3 py-2.5 font-medium text-sm"
+              />
+            </div>
+          </div>
+
           {/* Account Selections */}
           <div
             className={`grid gap-4 ${formData.type === TransactionType.TRANSFER ? "grid-cols-2" : "grid-cols-1"}`}
@@ -362,7 +396,18 @@ export default function TransactionForm({
               </p>
             )}
 
-          {/* Actions */}
+          {formData.type === TransactionType.TRANSFER &&
+            formData.destinationAccountId &&
+            formData.accountId !== formData.destinationAccountId &&
+            accounts.find((a) => a.id === formData.destinationAccountId)?.type === AccountType.CREDIT_CARD && (
+              <p className="text-xs font-bold text-[var(--color-transfer)] mt-1 ml-1 flex items-center gap-1">
+                💳 {t("txForm.creditCardPayment")}
+              </p>
+            )}
+
+          </fieldset>
+
+          {/* Actions — outside fieldset so buttons stay interactive */}
           <div className="flex justify-end gap-3 pt-4 border-t-2 border-[var(--color-border)] mt-2">
             <button
               type="button"

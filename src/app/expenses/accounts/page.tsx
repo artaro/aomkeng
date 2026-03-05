@@ -64,13 +64,11 @@ export default function AccountsPage() {
     }
   };
 
-  const totalBalance = accounts.reduce((sum, acc) => {
-    if (acc.type === AccountType.CREDIT_CARD) return sum - Number(acc.balance);
-    return sum + Number(acc.balance);
-  }, 0);
-
   const bankAccounts = accounts.filter((a) => a.type === AccountType.BANK);
   const creditCards = accounts.filter((a) => a.type === AccountType.CREDIT_CARD);
+  const totalCash = bankAccounts.reduce((sum, a) => sum + Number(a.balance), 0);
+  const totalDebt = creditCards.reduce((sum, a) => sum + Number(a.balance), 0);
+  const netBalance = totalCash - totalDebt;
 
   // Close menu when clicking outside
   React.useEffect(() => {
@@ -101,15 +99,41 @@ export default function AccountsPage() {
         </button>
       </div>
 
-      {/* Net Worth Card */}
-      <div className="bg-[var(--color-primary)] border-2 border-[var(--color-primary)] p-6 text-[var(--color-text-inverse)] shadow-[6px_6px_0px_0px_var(--color-border)]">
-          <p className="text-[var(--color-text-inverse)]/70 font-bold text-sm mb-1 uppercase tracking-wider">{t('accounts.netBalance')}</p>
-          <h2 className="text-4xl font-extrabold mb-2">
-            {isLoading ? '...' : formatCurrency(totalBalance)}
-          </h2>
-          <p className="text-[var(--color-text-inverse)]/60 text-sm">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-3 gap-3">
+        <div className="bg-[var(--color-surface)] border-2 border-[var(--color-border)] p-4 shadow-[3px_3px_0px_0px_var(--color-income)]">
+          <p className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
+            {t('accounts.totalCash')}
+          </p>
+          <p className="text-xl font-extrabold text-[var(--color-income)]">
+            {isLoading ? '...' : formatCurrency(totalCash)}
+          </p>
+          <p className="text-[10px] text-[var(--color-text-muted)]">
+            {bankAccounts.length} {t('accounts.bankAccounts').toLowerCase()}
+          </p>
+        </div>
+        <div className="bg-[var(--color-surface)] border-2 border-[var(--color-border)] p-4 shadow-[3px_3px_0px_0px_var(--color-expense)]">
+          <p className="text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1">
+            {t('accounts.totalDebt')}
+          </p>
+          <p className="text-xl font-extrabold text-[var(--color-expense)]">
+            {isLoading ? '...' : formatCurrency(totalDebt)}
+          </p>
+          <p className="text-[10px] text-[var(--color-text-muted)]">
+            {creditCards.length} {t('accounts.creditCards').toLowerCase()}
+          </p>
+        </div>
+        <div className="bg-[var(--color-primary)] border-2 border-[var(--color-primary)] p-4 shadow-[3px_3px_0px_0px_var(--color-border)]">
+          <p className="text-xs font-bold text-[var(--color-text-inverse)]/70 uppercase tracking-wider mb-1">
+            {t('accounts.net')}
+          </p>
+          <p className="text-xl font-extrabold text-[var(--color-text-inverse)]">
+            {isLoading ? '...' : formatCurrency(netBalance)}
+          </p>
+          <p className="text-[10px] text-[var(--color-text-inverse)]/60">
             {t('accounts.across', { count: accounts.length })}
           </p>
+        </div>
       </div>
 
       {error && (
@@ -215,21 +239,21 @@ function AccountCard({ account, activeMenuId, onToggleMenu, onEdit, onDelete }: 
   const showMenu = activeMenuId === account.id;
 
   return (
-    <div className="group relative bg-[var(--color-surface)] border-2 border-[var(--color-border)] p-5 shadow-[3px_3px_0px_0px_var(--color-primary)] brutal-hover transition-all">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex items-center gap-4">
-          <div 
-            className={`w-12 h-12 flex items-center justify-center text-white border-2 border-[var(--color-border)] ${
-                isBank 
-                ? 'bg-[var(--color-income)]' 
+    <div className="group relative bg-[var(--color-surface)] border-2 border-[var(--color-border)] p-4 shadow-[2px_2px_0px_0px_var(--color-primary)] brutal-hover transition-all">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-9 h-9 flex items-center justify-center text-white border-2 border-[var(--color-border)] ${
+                isBank
+                ? 'bg-[var(--color-income)]'
                 : 'bg-[var(--color-expense)]'
             }`}
           >
-            {isBank ? <Landmark size={22} /> : <CreditCard size={22} />}
+            {isBank ? <Landmark size={18} /> : <CreditCard size={18} />}
           </div>
           <div>
-            <h4 className="font-bold text-[var(--color-text-primary)]">{account.name}</h4>
-            {account.bankName && <p className="text-xs text-[var(--color-text-secondary)] font-medium">{account.bankName}</p>}
+            <h4 className="font-bold text-sm text-[var(--color-text-primary)]">{account.name}</h4>
+            {account.bankName && <p className="text-[10px] text-[var(--color-text-secondary)] font-medium">{account.bankName}</p>}
           </div>
         </div>
         
@@ -262,27 +286,48 @@ function AccountCard({ account, activeMenuId, onToggleMenu, onEdit, onDelete }: 
 
       <div className="flex justify-between items-end">
         <div>
-           <p className="text-xs text-[var(--color-text-muted)] font-semibold uppercase tracking-wider mb-0.5">
+           <p className="text-[10px] text-[var(--color-text-muted)] font-semibold uppercase tracking-wider mb-0.5">
                {isBank ? t('accounts.balance') : t('accounts.outstanding')}
            </p>
-           <p className={`text-xl font-extrabold ${isBank ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-accent)]'}`}>
+           <p className={`text-lg font-extrabold ${isBank ? 'text-[var(--color-text-primary)]' : 'text-[var(--color-accent)]'}`}>
                {formatCurrency(Number(account.balance))}
            </p>
         </div>
-        
-        <div className="flex items-center gap-2">
-           <span className={`px-2 py-1 text-[10px] font-bold uppercase tracking-wide border-2 ${
-               isBank 
-               ? 'text-[var(--color-income)] border-[var(--color-income)] bg-[var(--color-income)]/10' 
+
+        <div className="flex items-center gap-1.5">
+           <span className={`px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide border ${
+               isBank
+               ? 'text-[var(--color-income)] border-[var(--color-income)] bg-[var(--color-income)]/10'
                : 'text-[var(--color-accent)] border-[var(--color-accent)] bg-[var(--color-accent)]/10'
            }`}>
                {isBank ? t('accounts.bank') : t('accounts.credit')}
            </span>
            {account.accountNumberLast4 && (
-               <span className="text-xs text-[var(--color-text-muted)] font-medium">•••• {account.accountNumberLast4}</span>
+               <span className="text-[10px] text-[var(--color-text-muted)] font-medium">•••• {account.accountNumberLast4}</span>
            )}
         </div>
       </div>
+
+      {/* Credit utilization bar */}
+      {!isBank && account.creditLimit != null && account.creditLimit > 0 && (() => {
+        const pct = Math.min(100, Math.round((Number(account.balance) / account.creditLimit!) * 100));
+        const barColor = pct >= 80 ? 'var(--color-expense)' : pct >= 50 ? '#F59E0B' : 'var(--color-income)';
+        const available = account.creditLimit! - Number(account.balance);
+        return (
+          <div className="mt-3 pt-3 border-t border-[var(--color-border)]">
+            <div className="flex justify-between text-[10px] font-bold text-[var(--color-text-muted)] uppercase tracking-wider mb-1.5">
+              <span style={{ color: barColor }}>{t('accounts.utilized', { pct })}</span>
+              <span>{formatCurrency(available)} {t('accounts.availableCredit')}</span>
+            </div>
+            <div className="h-1.5 bg-[var(--color-surface-2)] border border-[var(--color-border)]">
+              <div style={{ width: `${pct}%`, backgroundColor: barColor }} className="h-full transition-all duration-500" />
+            </div>
+            <p className="text-[10px] text-[var(--color-text-muted)] mt-1">
+              {formatCurrency(Number(account.balance))} / {formatCurrency(account.creditLimit!)}
+            </p>
+          </div>
+        );
+      })()}
     </div>
   );
 }
